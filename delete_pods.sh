@@ -1,15 +1,19 @@
 #echo !/bin/bash
 NS=''
 CONTEXT=''
+MIN_DISERED=80
 
 usage() {
   echo "This is for those that doesn\`t have deployment resource only replicas set...  
-It will delete pod one by one until 30% of desired state and after it will wait desired state to be reached.
+  It will delete pod one by one until 20%(default of -p) of desired state and after it will wait desired state to be reached.
 You just need to pass a keyword and it will find pods and replica with this name 
 
 $0 <keyword>
 $0 [ -n namespace ] <keyword>
-$0 [ -c context ] [ -n namespace ] <keyword>
+$0 [ -c context ] [ -n namespace ] [ -p 0-100 ] <keyword>
+
+    -p      percentage(rounds up) of desired state that must be keep running, check will run after delete
+
                                                  ,-~-.
                                                 < ^ ; ~,
                                                  (_  _, 
@@ -22,13 +26,16 @@ if [ $# -eq 0 ]; then
   usage
 fi
 
-while getopts ":n:c:h" options; do
+while getopts ":n:c:p:h" options; do
   case "${options}" in 
     n)
       NS="-n ${OPTARG}"
       ;;
     c)
       CONTEXT="--context=${OPTARG}"
+      ;;
+    p)
+      MIN_DISERED=${OPTARG}
       ;;
     h)
       usage
@@ -67,8 +74,9 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
    do
     desired=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{print $2}') 
     current=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{print $4}') 
+    min=$((($desired*$MIN_DISERED+99)/100))
     echo state: $current/$desired
-    if [ "$desired" -eq "$current" ] || [ $((($desired*80+99)/100)) -le $current ] ; then
+    if [ "$desired" -eq "$current" ] || [ $current -ge $min ] ; then
       echo
       echo "(ヘ･_･)ヘ┳━┳"
       echo "pod $pod has been replaced"
