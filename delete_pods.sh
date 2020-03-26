@@ -79,7 +79,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     if [ "$desired" -eq "$current" ] || [ $current -ge $min ] ; then
       echo
       echo "(ヘ･_･)ヘ┳━┳"
-      echo "pod $pod has been replaced"
+      echo "minimum desired state reached"
       echo 
       break;
     fi
