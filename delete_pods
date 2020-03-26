@@ -1,6 +1,24 @@
-#!/bin/bash
+#echo !/bin/bash
 NS=''
 CONTEXT=''
+
+usage() {
+  echo "This is for those that doesn\`t have deployment resource only replicas set...  
+It will delete pod one by one waiting desired state be reached.
+You just need to pass a keyword and it will find pods and replica with this name 
+
+$0 [ -c context ] [ -n namespace ] <keyword>
+                                                 ,-~-.
+                                                < ^ ; ~,
+                                                 (_  _, 
+                                                  J~~> 
+"
+  exit
+}
+
+if [ $# -eq 0 ]; then
+  usage
+fi
 
 while getopts ":n:c:h" options; do
   case "${options}" in 
@@ -11,25 +29,23 @@ while getopts ":n:c:h" options; do
       CONTEXT="--context=${OPTARG}"
       ;;
     h)
-      echo "This is for those that doesn\`t have deployment resource only replicas set...  
-It will delete pod one by one waiting desired state be reached.
-You just need to pass a keyword and it will find pods and replica with this name 
-
-$0 [ -c context ] [ -n namespace ] <keyword>
-                                                 ,-~-.
-                                                < ^ ; ~,
-                                                 (_  _, 
-                                                  J~~> 
-"
-      exit;;
+      usage
+      ;;
   esac
 done
+
 shift $(($#-1))
 KEYWORD=$1
 
 k="kubectl $NS $CONTEXT"
 declare -a pods=($(kubectl $NS $CONTEXT get po | grep $KEYWORD | awk '{ print $1 }' |  tr '\n' ' '))
 replicaSet=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{ print $1 }')
+
+if [[ ${#pods[@]} -eq 0 ]]; then
+  echo "couldn\`t find any pods... (╯︵╰, )"
+  exit
+fi
+
 echo replica set returned from keyword \"$KEYWORD\": 
 echo
 echo '  '$replicaSet
