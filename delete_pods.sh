@@ -4,7 +4,7 @@ CONTEXT=''
 
 usage() {
   echo "This is for those that doesn\`t have deployment resource only replicas set...  
-It will delete pod one by one waiting desired state be reached.
+It will delete pod one by one until 30% of desired state and after it will wait desired state to be reached.
 You just need to pass a keyword and it will find pods and replica with this name 
 
 $0 <keyword>
@@ -40,7 +40,7 @@ shift $(($#-1))
 KEYWORD=$1
 
 k="kubectl $NS $CONTEXT"
-declare -a pods=($(kubectl $NS $CONTEXT get po | grep $KEYWORD | awk '{ print $1 }' |  tr '\n' ' '))
+declare -a pods=($(kubectl $NS $CONTEXT get po | grep $KEYWORD | grep Running | awk '{ print $1 }' |  tr '\n' ' '))
 replicaSet=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{ print $1 }')
 
 if [[ ${#pods[@]} -eq 0 ]]; then
@@ -68,7 +68,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     desired=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{print $2}') 
     current=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{print $4}') 
     echo state: $current/$desired
-    if [ "$desired" -eq "$current" ]; then
+    if [ "$desired" -eq "$current" ] || [ $((($desired*80+99)/100)) -le $current ] ; then
       echo
       echo "(ヘ･_･)ヘ┳━┳"
       echo "pod $pod has been replaced"
