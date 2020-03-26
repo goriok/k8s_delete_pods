@@ -7,6 +7,8 @@ usage() {
 It will delete pod one by one waiting desired state be reached.
 You just need to pass a keyword and it will find pods and replica with this name 
 
+$0 <keyword>
+$0 [ -n namespace ] <keyword>
 $0 [ -c context ] [ -n namespace ] <keyword>
                                                  ,-~-.
                                                 < ^ ; ~,
