@@ -6,8 +6,4 @@ You just need to pass a keyword and it will find pods and replica with this name
 ./delete_pods.sh <keyword>
 ./delete_pods.sh [ -n namespace ] <keyword>
 ./delete_pods.sh [ -c context ] [ -n namespace ] <keyword>
-                                                 ,-~-.
-                                                < ^ ; ~,
-                                                 (_  _,
-                                                  J~~>
 
