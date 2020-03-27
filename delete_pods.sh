@@ -48,7 +48,7 @@ KEYWORD=$1
 
 k="kubectl $NS $CONTEXT"
 declare -a pods=($(kubectl $NS $CONTEXT get po | grep $KEYWORD | grep Running | awk '{ print $1 }' |  tr '\n' ' '))
-replicaSet=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{ print $1 }')
+declare -a replicaSet=($(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{ print $1 }'))
 
 if [[ ${#pods[@]} -eq 0 ]]; then
   echo "couldn\`t find any pods... (╯︵╰, )"
@@ -57,7 +57,7 @@ fi
 
 echo replica set returned from keyword \"$KEYWORD\": 
 echo
-echo '  '$replicaSet
+printf '  %s\n' "${replicaSet[@]}"
 echo
 echo pods returned from keyword \"$KEYWORD\":
 echo
@@ -72,8 +72,9 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
    echo waiting desired state...
    while : 
    do
-    desired=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{print $2}') 
-    current=$(kubectl $NS $CONTEXT  get rs | grep $KEYWORD |  awk '{print $4}') 
+    rs=$(echo $pod | sed -e 's/\(-v[0-9]*\)\(.*\)$/\1/g')
+    desired=$(kubectl $NS $CONTEXT get rs $rs |  awk 'NR>1 {print $2}') 
+    current=$(kubectl $NS $CONTEXT get rs $rs |  awk 'NR>1 {print $4}') 
     min=$((($desired*$MIN_DISERED+99)/100))
     echo state: $current/$desired
     if [ "$desired" -eq "$current" ] || [ $current -ge $min ] ; then
